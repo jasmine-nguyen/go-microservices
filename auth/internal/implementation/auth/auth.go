@@ -12,13 +12,16 @@ type Implementation struct {
 	pb.UnimplementedAuthServiceServer
 }
 
-func NewAuthImplementation(db *sql.DB) *Implementation{
+func NewAuthImplementation(db *sql.DB) *Implementation {
 	return &Implementation{
-		db: db
+		db: db,
 	}
 }
 
 func (impl *Implementation) GetToken(ctx context.Context, credentials *pb.Credentials) (*pb.Token, error) {
+	return &pb.Token{}, nil
 }
 
-func (impl *Implementation) ValidateToken(ctx context.Context, token *pb.Token) (*pb.User, error) {}
+func (impl *Implementation) ValidateToken(ctx context.Context, token *pb.Token) (*pb.User, error) {
+	return &pb.User{}, nil
+}

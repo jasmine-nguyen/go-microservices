@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net"
 
 	"github.com/jasmine-nguyen/go-microservices/auth/internal/implementation/auth"
-	pb "github.com/jasmine-nguyen/go-microservices/proto"
+	pb "github.com/jasmine-nguyen/go-microservices/auth/proto"
 	"google.golang.org/grpc"
 )
 
@@ -45,5 +46,16 @@ func main() {
 	// grpc server setup
 	grpcServer := grpc.NewServer()
 	authServerImplementation := auth.NewAuthImplementation(db)
-	pb.RegisterAuthServiceServer(authServerImplementation, grpcServer)
+	pb.RegisterAuthServiceServer(grpcServer, authServerImplementation)
+
+	// listen and serve
+	listener, err := net.Listen("tcp", ":9000")
+	if err != nil {
+		log.Fatalf("failed to listen on port 9000: %v", err)
+	}
+
+	log.Printf("server listening at: %v", listener.Addr())
+	if err = grpcServer.Serve(listener); err != nil {
+		log.Fatalf("server failed to serve: %v", err)
+	}
 }
