@@ -3,6 +3,7 @@ module github.com/jasmine-nguyen/go-microservices
 go 1.23.3
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	google.golang.org/grpc v1.68.0
 	google.golang.org/protobuf v1.35.2
 )
