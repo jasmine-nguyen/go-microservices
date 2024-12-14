@@ -218,8 +218,8 @@ func (impl *Implementation) Capture(ctx context.Context, req *pb.CaptureRequest)
 		return nil, err
 	}
 
-	err = transfer(tx, srcAccount ddstMerchantAccount, auauthorizeTransaction.amount)
-		if err != nil {
+	err = transfer(tx, srcAccount, dstMerchantAccount, authorizeTransaction.amount)
+	if err != nil {
 		err := tx.Rollback()
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
@@ -227,9 +227,9 @@ func (impl *Implementation) Capture(ctx context.Context, req *pb.CaptureRequest)
 		return nil, err
 	}
 
-	merchantWallet, err = fetchWallet(tx, authorizeTransaction.dst_user_id)
+	merchantWallet, err := fetchWallet(tx, authorizeTransaction.dstUserID)
 	_, err = createTransaction(tx, srcAccount, dstMerchantAccount, merchantWallet, authorizeTransaction.amount)
-		if err != nil {
+	if err != nil {
 		err := tx.Rollback()
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
