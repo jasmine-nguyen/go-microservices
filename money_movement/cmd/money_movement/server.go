@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	mm "github.com/jasmine-nguyen/go-microservices/internal/implementation"
-	pb "github.com/jasmine-nguyen/go-microservices/proto"
+	mm "github.com/jasmine-nguyen/go-microservices/money_movement/internal/implementation"
+	pb "github.com/jasmine-nguyen/go-microservices/money_movement/proto"
 	"google.golang.org/grpc"
 )
 

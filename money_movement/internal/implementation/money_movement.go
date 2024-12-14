@@ -6,8 +6,8 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/jasmine-nguyen/go-microservices/internal/producer"
-	pb "github.com/jasmine-nguyen/go-microservices/proto"
+	"github.com/jasmine-nguyen/go-microservices/money_movement/internal/producer"
+	pb "github.com/jasmine-nguyen/go-microservices/money_movement/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
