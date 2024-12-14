@@ -4,10 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"net"
 
-	// "github.com/jasmine-nguyen/go-microservices/auth/internal/implementation/auth"
-	pb "github.com/jasmine-nguyen/go-microservices/auth/proto"
+	mm "github.com/jasmine-nguyen/go-microservices/internal/implementation"
+	pb "github.com/jasmine-nguyen/go-microservices/proto"
 	"google.golang.org/grpc"
 )
 
@@ -45,4 +44,5 @@ func main() {
 
 	// grpc server setup
 	grpcServer := grpc.NewServer()
+	pb.RegisterMoneyMovementServiceServer(grpcServer, mm.NewMoneyMovementImplementation(db))
 }

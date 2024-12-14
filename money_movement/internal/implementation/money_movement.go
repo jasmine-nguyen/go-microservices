@@ -5,11 +5,9 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/uuid"
 	pb "github.com/jasmine-nguyen/go-microservices/proto"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/serviceconfig"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -96,7 +94,7 @@ func (impl *Implementation) Authorize(ctx context.Context, req *pb.AuthorizeRequ
 	// End the transaction
 	err = tx.Commit()
 	if err != nil {
-		return nil, status.Code(codes.Internal, err.Error())
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &pb.AuthorizeResponse{Pid: pid}, nil
@@ -228,6 +226,14 @@ func (impl *Implementation) Capture(ctx context.Context, req *pb.CaptureRequest)
 	}
 
 	merchantWallet, err := fetchWallet(tx, authorizeTransaction.dstUserID)
+	if err != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		return nil, err
+	}
+
 	_, err = createTransaction(tx, srcAccount, dstMerchantAccount, merchantWallet, authorizeTransaction.amount)
 	if err != nil {
 		err := tx.Rollback()
@@ -240,7 +246,7 @@ func (impl *Implementation) Capture(ctx context.Context, req *pb.CaptureRequest)
 	// Commit transaction
 	err = tx.Commit()
 	if err != nil {
-		return nil, status.Code(codes.Internal, err.Error())
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &emptypb.Empty{}, nil
