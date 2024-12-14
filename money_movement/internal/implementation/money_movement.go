@@ -40,54 +40,54 @@ func (impl *Implementation) Authorize(ctx context.Context, req *pb.AuthorizeRequ
 
 	merchantWallet, err := fetchWallet(tx, req.GetMerchantWalletUserId())
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
 		}
 		return nil, err
 	}
 
 	customerWallet, err := fetchWallet(tx, req.GetCustomerWalletUserId())
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
 		}
 		return nil, err
 	}
 
 	srcAccount, err := fetchAccount(tx, customerWallet.ID, "DEFAULT")
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
 		}
 		return nil, err
 	}
 
 	dstAccount, err := fetchAccount(tx, customerWallet.ID, "PAYMENT")
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
 		}
 		return nil, err
 	}
 
 	err = transfer(tx, srcAccount, dstAccount, req.GetCents())
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
 		}
 		return nil, err
 	}
 
 	pid, err := createTransaction(tx, srcAccount, dstAccount, merchantWallet, req.GetCents())
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
 		}
 		return nil, err
 	}
@@ -192,54 +192,54 @@ func (impl *Implementation) Capture(ctx context.Context, req *pb.CaptureRequest)
 
 	authorizeTransaction, err := fetchTransaction(tx, req.GetPid())
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
 		}
 		return nil, err
 	}
 
 	srcAccount, err := fetchAccount(tx, authorizeTransaction.dstAccountWalletID, "PAYMENT")
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
 		}
 		return nil, err
 	}
 
 	dstMerchantAccount, err := fetchAccount(tx, authorizeTransaction.finalDstMerchantWalletID, "INCOMING")
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
 		}
 		return nil, err
 	}
 
 	err = transfer(tx, srcAccount, dstMerchantAccount, authorizeTransaction.amount)
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
 		}
 		return nil, err
 	}
 
 	merchantWallet, err := fetchWallet(tx, authorizeTransaction.dstUserID)
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
 		}
 		return nil, err
 	}
 
 	_, err = createTransaction(tx, srcAccount, dstMerchantAccount, merchantWallet, authorizeTransaction.amount)
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
 		}
 		return nil, err
 	}
