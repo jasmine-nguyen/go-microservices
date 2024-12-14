@@ -83,7 +83,8 @@ func (impl *Implementation) Authorize(ctx context.Context, req *pb.AuthorizeRequ
 		return nil, err
 	}
 
-	pid, err := createTransaction(tx, srcAccount, dstAccount, merchantWallet, req.GetCents())
+	pid := uuid.NewString()
+	err = createTransaction(tx, pid, srcAccount, dstAccount, customerWallet, customerWallet, merchantWallet, req.GetCents())
 	if err != nil {
 		rollBackErr := tx.Rollback()
 		if rollBackErr != nil {
@@ -109,6 +110,24 @@ func fetchWallet(tx *sql.Tx, userID string) (wallet, error) {
 	}
 
 	err = stmt.QueryRow(userID).Scan(&w.ID, &w.userID, &w.walletType)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return w, status.Error(codes.InvalidArgument, err.Error())
+		}
+		return w, status.Error(codes.Internal, err.Error())
+	}
+
+	return w, nil
+}
+
+func fetchWalletByWalletID(tx *sql.Tx, walletID int32) (wallet, error) {
+	var w wallet
+	stmt, err := tx.Prepare("SELECT id, user_id, wallet_type FROM Wallet WHERE id=?")
+	if err != nil {
+		return w, status.Error(codes.Internal, err.Error())
+	}
+
+	err = stmt.QueryRow(walletID).Scan(&w.ID, &w.userID, &w.walletType)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return w, status.Error(codes.InvalidArgument, err.Error())
@@ -167,20 +186,18 @@ func transfer(tx *sql.Tx, srcAccount account, dstAccount account, amount int64) 
 	return nil
 }
 
-func createTransaction(tx *sql.Tx, srcAccount account, dstAccount account, merchantWallet wallet, amount int64) (string, error) {
-	pid := uuid.NewString()
-
+func createTransaction(tx *sql.Tx, pid string, srcAccount account, dstAccount account, srcWallet wallet, dstWallet wallet, finalDstWallet wallet, amount int64) error {
 	stmt, err := tx.Prepare(insertTransactionQuery)
 	if err != nil {
-		return "", status.Error(codes.Internal, err.Error())
+		return status.Error(codes.Internal, err.Error())
 	}
 
-	_, err = stmt.Exec(pid, srcAccount.walletID, dstAccount.walletID, srcAccount.ID, dstAccount.ID, srcAccount.accountType, dstAccount.accountType, merchantWallet.ID, amount)
+	_, err = stmt.Exec(pid, srcWallet.userID, dstWallet.userID, srcWallet.ID, dstWallet.ID, srcAccount.walletID, dstAccount.walletID, srcAccount.ID, dstAccount.ID, srcAccount.accountType, dstAccount.accountType, finalDstWallet.ID, amount)
 	if err != nil {
-		return "", status.Error(codes.Internal, err.Error())
+		return status.Error(codes.Internal, err.Error())
 	}
 
-	return pid, nil
+	return nil
 }
 
 func (impl *Implementation) Capture(ctx context.Context, req *pb.CaptureRequest) (*emptypb.Empty, error) {
@@ -226,7 +243,7 @@ func (impl *Implementation) Capture(ctx context.Context, req *pb.CaptureRequest)
 		return nil, err
 	}
 
-	merchantWallet, err := fetchWallet(tx, authorizeTransaction.dstUserID)
+	customerWallet, err := fetchWallet(tx, authorizeTransaction.srcUserID)
 	if err != nil {
 		rollBackErr := tx.Rollback()
 		if rollBackErr != nil {
@@ -235,7 +252,16 @@ func (impl *Implementation) Capture(ctx context.Context, req *pb.CaptureRequest)
 		return nil, err
 	}
 
-	_, err = createTransaction(tx, srcAccount, dstMerchantAccount, merchantWallet, authorizeTransaction.amount)
+	merchantWallet, err := fetchWalletByWalletID(tx, authorizeTransaction.finalDstMerchantWalletID)
+	if err != nil {
+		rollBackErr := tx.Rollback()
+		if rollBackErr != nil {
+			return nil, status.Error(codes.Internal, rollBackErr.Error())
+		}
+		return nil, err
+	}
+
+	err = createTransaction(tx, authorizeTransaction.pid, srcAccount, dstMerchantAccount, customerWallet, merchantWallet, merchantWallet, authorizeTransaction.amount)
 	if err != nil {
 		rollBackErr := tx.Rollback()
 		if rollBackErr != nil {
