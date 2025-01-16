@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net"
 
 	mm "github.com/jasmine-nguyen/go-microservices/money_movement/internal/implementation"
 	pb "github.com/jasmine-nguyen/go-microservices/money_movement/proto"
@@ -45,4 +46,15 @@ func main() {
 	// grpc server setup
 	grpcServer := grpc.NewServer()
 	pb.RegisterMoneyMovementServiceServer(grpcServer, mm.NewMoneyMovementImplementation(db))
+
+	// listen and serve
+	listener, err := net.Listen("tcp", ":7000")
+	if err != nil {
+		log.Fatalf("failed to listen on port 7000: %v", err)
+	}
+
+	log.Printf("server listening at: %v", listener.Addr())
+	if err = grpcServer.Serve(listener); err != nil {
+		log.Fatalf("server failed to serve: %v", err)
+	}
 }
