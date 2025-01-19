@@ -1,11 +1,13 @@
 package email
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"sync"
 
 	"github.com/IBM/sarama"
+	"github.com/jasmine-nguyen/go-microservices/email/internal/email"
 )
 
 const topic = "email"
@@ -41,8 +43,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer func(){
-			if err := partitionConsumer.Close(): err != nil {
+		defer func() {
+			if err := partitionConsumer.Close(); err != nil {
 				log.Println(err)
 			}
 		}()
@@ -54,18 +56,18 @@ func main() {
 	wg.Wait()
 }
 
-func awaitMessages(partitionConsumer sarama.PartitionConsumer, partition int32, done chan struct{}){
+func awaitMessages(partitionConsumer sarama.PartitionConsumer, partition int32, done chan struct{}) {
 	defer wg.Done()
 
 	for {
 		select {
-		case msg := <- partitionConsumer.Messages():
-			fmt.Printf("Partition %d - Receieved message: %s\n", partition, msg)
+		case msg := <-partitionConsumer.Messages():
+			fmt.Printf("Partition %d - Receieved message: %v\n", partition, msg)
 			handlMessage(msg)
-		}
-		case <- done:
+		case <-done:
 			fmt.Printf("Received done signal. Exiting....\n")
 			return
+		}
 	}
 }
 
@@ -78,5 +80,9 @@ func handlMessage(msg *sarama.ConsumerMessage) {
 		return
 	}
 
-	email.Send(emailMsg.UserID, emailMsg.OrderID)
+	err = email.Send(emailMsg.UserID, emailMsg.OrderID)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
