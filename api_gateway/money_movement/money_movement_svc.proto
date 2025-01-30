@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/jasmine-nguyen/go-microservices/auth/proto/pb";
+
+service MoneyMovementService {
+  rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse);
+  rpc Capture(CaptureRequest) returns (google.protobuf.Empty);
+}
+
+message AuthorizeRequest {
+  string customerWalletUserId = 1;
+  string merchantWalletUserId = 2;
+  int64 cents = 3;
+  string currency = 4;
+}
+
+message AuthorizeResponse { string pid = 1; }
+
+message CaptureRequest { string pid = 1; }
