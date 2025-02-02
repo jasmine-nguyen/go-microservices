@@ -3,6 +3,7 @@ package producer
 import (
 	"encoding/json"
 	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -28,8 +29,9 @@ type LedgerMsg struct {
 }
 
 func SendCaptureMessage(pid string, userID string, amount int64) {
+	sarama.Logger = log.New(os.Stdout, "[sarama]", log.LstdFlags)
 	// Create a sync producer
-	producer, err := sarama.NewSyncProducer([]string{"localhost:9092"}, sarama.NewConfig())
+	producer, err := sarama.NewSyncProducer([]string{"my-cluster-kafka-boostrap:9092"}, sarama.NewConfig())
 	if err != nil {
 		log.Println(err)
 	}

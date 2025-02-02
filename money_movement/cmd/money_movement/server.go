@@ -3,18 +3,18 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
-	"net"
-
+	_ "github.com/go-sql-driver/mysql"
 	mm "github.com/jasmine-nguyen/go-microservices/money_movement/internal/implementation"
 	pb "github.com/jasmine-nguyen/go-microservices/money_movement/proto"
 	"google.golang.org/grpc"
+	"log"
+	"net"
 )
 
 const (
 	dbDriver   = "mysql"
-	dbUser     = "root"
-	dbPassword = "Admin123"
+	dbUser     = "money_movement_user"
+	dbPassword = "Auth123"
 	dbName     = "money_movement"
 )
 
@@ -24,7 +24,7 @@ func main() {
 	var err error
 
 	// Open a database connection
-	dsn := fmt.Sprintf("%s:%s@tcp(localhost:3306)/%s", dbUser, dbPassword, dbName)
+	dsn := fmt.Sprintf("%s:%s@tcp(mysql-money-movement:3306)/%s", dbUser, dbPassword, dbName)
 
 	db, err = sql.Open(dbDriver, dsn)
 	if err != nil {
