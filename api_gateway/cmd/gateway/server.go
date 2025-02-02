@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -48,6 +49,12 @@ func main() {
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/customer/payment/authorize", customerPaymentAuthorize)
 	http.HandleFunc("/customer/payment/capture", customerPaymentCapture)
+
+	fmt.Println("listening on port: 8080")
+	err = http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
