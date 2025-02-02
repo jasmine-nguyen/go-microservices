@@ -3,19 +3,18 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
-	"net"
-
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jasmine-nguyen/go-microservices/auth/internal/implementation/auth"
 	pb "github.com/jasmine-nguyen/go-microservices/auth/proto"
 	"google.golang.org/grpc"
+	"log"
+	"net"
+	"os"
 )
 
 const (
-	dbDriver   = "mysql"
-	dbUser     = "root"
-	dbPassword = "Admin123"
-	dbName     = "User"
+	dbDriver = "mysql"
+	dbName   = "auth"
 )
 
 var db *sql.DB
@@ -23,8 +22,11 @@ var db *sql.DB
 func main() {
 	var err error
 
+	dbUser := os.Getenv("MYSQL_USERNAME")
+	dbPassword := os.Getenv("MYSQL_PASSWORD")
+
 	// Open a database connection
-	dsn := fmt.Sprintf("%s:%s@tcp(localhost:3306)/%s", dbUser, dbPassword, dbName)
+	dsn := fmt.Sprintf("%s:%s@tcp(mysql-auth:3306)/%s", dbUser, dbPassword, dbName)
 
 	db, err = sql.Open(dbDriver, dsn)
 	if err != nil {
