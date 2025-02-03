@@ -1,6 +1,6 @@
 {
 	"customer_wallet_user_id": "gomicrojas123@gmail.com",
 	"merchant_wallet_user_id": "merchant_id",
-	"cents": "100",
+	"cents": 100,
 	"currency": "USD"
 }
