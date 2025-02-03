@@ -87,7 +87,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 func customerPaymentAuthorize(w http.ResponseWriter, r *http.Request) {
 	authHeader := r.Header.Get("Authorization")
-	if authHeader != "" {
+	if authHeader == "" {
 		log.Println("empty header")
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
