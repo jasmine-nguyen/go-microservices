@@ -32,7 +32,7 @@ func (impl *Implementation) GetToken(ctx context.Context, credentials *pb.Creden
 
 	var u user
 
-	statement, err := impl.db.Prepare("SELECT user_id, password FROM User WHERE user_id=? AND password=?")
+	statement, err := impl.db.Prepare("SELECT user_id, password FROM user WHERE user_id=? AND password=?")
 	if err != nil {
 		log.Println(err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
