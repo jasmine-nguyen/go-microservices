@@ -67,6 +67,10 @@ func login(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	token, err := authClient.GetToken(ctx, &authpb.Credentials{UserName: userName, Password: password})
 	if err != nil {
+		if err.Error() == "invalid credentials" {
+			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			return
+		}
 		_, writeErr := w.Write([]byte(err.Error()))
 		if writeErr != nil {
 			log.Println(writeErr)
