@@ -87,25 +87,27 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 func customerPaymentAuthorize(w http.ResponseWriter, r *http.Request) {
 	authHeader := r.Header.Get("Authorization")
+	log.Println("---auth header: ", authHeader)
 	if authHeader == "" {
-		log.Println("empty header")
+		log.Println("---empty header")
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 
 	if !strings.HasPrefix(authHeader, "Bearer ") {
-		log.Println("missing prefix")
+		log.Println("---missing prefix")
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 
 	token := strings.TrimPrefix(authHeader, "Bearer ")
+	log.Println("---token after trim: ", token)
 	ctx := context.Background()
 	_, err := authClient.ValidateToken(ctx, &authpb.Token{
 		Jwt: token,
 	})
 	if err != nil {
-		log.Println("invalid token")
+		log.Println("---invalid token")
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
@@ -117,15 +119,19 @@ func customerPaymentAuthorize(w http.ResponseWriter, r *http.Request) {
 		Currency             string `json:"currency"`
 	}
 
+	log.Println("---request body: ", r.Body)
 	var payload authorizePayload
 	body, err := io.ReadAll(r.Body)
+	log.Println("---body: ", body)
 	if err != nil {
+		log.Println("---error reading request body: ", err.Error())
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	err = json.Unmarshal(body, &payload)
 	if err != nil {
+		log.Println("---error unmarshaling payload: ", err.Error())
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

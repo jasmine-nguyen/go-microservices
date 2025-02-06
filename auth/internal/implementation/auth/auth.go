@@ -4,13 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
+	"os"
+	"time"
+
 	jwt "github.com/golang-jwt/jwt/v5"
 	pb "github.com/jasmine-nguyen/go-microservices/auth/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"log"
-	"os"
-	"time"
 )
 
 type Implementation struct {
@@ -58,6 +59,7 @@ func (impl *Implementation) GetToken(ctx context.Context, credentials *pb.Creden
 
 func createJWT(userID string) (string, error) {
 	key := []byte(os.Getenv("SIGNING_KEY"))
+	log.Println("---signing key when creating jwt: ", key)
 	now := time.Now()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -68,6 +70,7 @@ func createJWT(userID string) (string, error) {
 	})
 
 	signedToken, err := token.SignedString(key)
+	log.Println("---signed token: ", signedToken)
 	if err != nil {
 		return "", status.Error(codes.Internal, err.Error())
 	}
@@ -77,9 +80,13 @@ func createJWT(userID string) (string, error) {
 
 func (impl *Implementation) ValidateToken(ctx context.Context, token *pb.Token) (*pb.User, error) {
 	key := []byte(os.Getenv("SIGNING_KEY"))
+	log.Println("---signing key when validating jwt: ", key)
+	log.Println("---jwt: ", token.Jwt)
 
 	userId, err := validateJWT(token.Jwt, key)
+	log.Println("---userId after validating jwt: ", userId)
 	if err != nil {
+		log.Println("---validate jwt error: ", err.Error())
 		return nil, err
 	}
 
@@ -96,6 +103,7 @@ func validateJWT(t string, signingKey []byte) (string, error) {
 	})
 
 	if err != nil {
+		log.Println("---error parsing token: ", err.Error())
 		if errors.Is(err, jwt.ErrTokenExpired) {
 			return "", status.Error(codes.Unauthenticated, "token expired")
 		}
@@ -103,10 +111,12 @@ func validateJWT(t string, signingKey []byte) (string, error) {
 		return "", status.Error(codes.Unauthenticated, "unauthenticated")
 	}
 
+	log.Println("---parsedToken: ", parsedToken)
 	claims, ok := parsedToken.Claims.(*MyClaims)
 	if !ok {
 		return "", status.Error(codes.Internal, "claims type assertion failed")
 	}
 
+	log.Println("---claims: ", claims)
 	return claims.RegisteredClaims.Subject, nil
 }
