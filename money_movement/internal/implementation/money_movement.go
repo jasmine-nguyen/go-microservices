@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"log"
 )
 
 const (
@@ -39,6 +40,7 @@ func (impl *Implementation) Authorize(ctx context.Context, req *pb.AuthorizeRequ
 	}
 
 	merchantWallet, err := fetchWallet(tx, req.GetMerchantWalletUserId())
+	log.Printf("---merchant wallet: %v", merchantWallet)
 	if err != nil {
 		rollBackErr := tx.Rollback()
 		if rollBackErr != nil {
@@ -48,6 +50,7 @@ func (impl *Implementation) Authorize(ctx context.Context, req *pb.AuthorizeRequ
 	}
 
 	customerWallet, err := fetchWallet(tx, req.GetCustomerWalletUserId())
+	log.Printf("---customer wallet: %v", customerWallet)
 	if err != nil {
 		rollBackErr := tx.Rollback()
 		if rollBackErr != nil {
@@ -57,6 +60,7 @@ func (impl *Implementation) Authorize(ctx context.Context, req *pb.AuthorizeRequ
 	}
 
 	srcAccount, err := fetchAccount(tx, customerWallet.ID, "DEFAULT")
+	log.Printf("---source account: %v", srcAccount)
 	if err != nil {
 		rollBackErr := tx.Rollback()
 		if rollBackErr != nil {
@@ -66,6 +70,7 @@ func (impl *Implementation) Authorize(ctx context.Context, req *pb.AuthorizeRequ
 	}
 
 	dstAccount, err := fetchAccount(tx, customerWallet.ID, "PAYMENT")
+	log.Printf("---destination account: %v", dstAccount)
 	if err != nil {
 		rollBackErr := tx.Rollback()
 		if rollBackErr != nil {
@@ -84,6 +89,7 @@ func (impl *Implementation) Authorize(ctx context.Context, req *pb.AuthorizeRequ
 	}
 
 	pid := uuid.NewString()
+	log.Printf("---pid: %s", pid)
 	err = createTransaction(tx, pid, srcAccount, dstAccount, customerWallet, customerWallet, merchantWallet, req.GetCents())
 	if err != nil {
 		rollBackErr := tx.Rollback()

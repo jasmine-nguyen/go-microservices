@@ -87,7 +87,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 func customerPaymentAuthorize(w http.ResponseWriter, r *http.Request) {
 	authHeader := r.Header.Get("Authorization")
-	log.Println("---auth header: ", authHeader)
+	log.Printf("---auth header: %s", authHeader)
 	if authHeader == "" {
 		log.Println("---empty header")
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
@@ -101,7 +101,7 @@ func customerPaymentAuthorize(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := strings.TrimPrefix(authHeader, "Bearer ")
-	log.Println("---token after trim: ", token)
+	log.Printf("---token after trim: %s", token)
 	ctx := context.Background()
 	_, err := authClient.ValidateToken(ctx, &authpb.Token{
 		Jwt: token,
@@ -119,19 +119,19 @@ func customerPaymentAuthorize(w http.ResponseWriter, r *http.Request) {
 		Currency             string `json:"currency"`
 	}
 
-	log.Println("---request body: ", r.Body)
 	var payload authorizePayload
 	body, err := io.ReadAll(r.Body)
-	log.Println("---body: ", body)
+	log.Printf("---body: %s", string(body))
 	if err != nil {
-		log.Println("---error reading request body: ", err.Error())
+		log.Printf("---error reading request body: %s", err.Error())
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	err = json.Unmarshal(body, &payload)
+	log.Printf("---payload: %v", payload)
 	if err != nil {
-		log.Println("---error unmarshaling payload: ", err.Error())
+		log.Printf("---error unmarshaling payload: %s", err.Error())
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -143,6 +143,7 @@ func customerPaymentAuthorize(w http.ResponseWriter, r *http.Request) {
 		Cents:                payload.Cents,
 		Currency:             payload.Currency,
 	})
+	log.Printf("---authorize_payload: %v", ar)
 	if err != nil {
 		_, writeErr := w.Write([]byte(err.Error()))
 		if writeErr != nil {
@@ -155,11 +156,12 @@ func customerPaymentAuthorize(w http.ResponseWriter, r *http.Request) {
 		Pid string `json:"pid"`
 	}
 
-	resp := response{
+	resp := &response{
 		Pid: ar.Pid,
 	}
-
+	log.Printf("---resp: %v", resp)
 	responseJSON, err := json.Marshal(resp)
+	log.Printf("---responseJSON: %v", responseJSON)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return

@@ -70,7 +70,7 @@ func createJWT(userID string) (string, error) {
 	})
 
 	signedToken, err := token.SignedString(key)
-	log.Println("---signed token: ", signedToken)
+	log.Printf("---signed token: %s", signedToken)
 	if err != nil {
 		return "", status.Error(codes.Internal, err.Error())
 	}
