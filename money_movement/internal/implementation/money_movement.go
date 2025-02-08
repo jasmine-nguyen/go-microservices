@@ -29,19 +29,22 @@ func NewMoneyMovementImplementation(db *sql.DB) *Implementation {
 }
 
 func (impl *Implementation) Authorize(ctx context.Context, req *pb.AuthorizeRequest) (*pb.AuthorizeResponse, error) {
+	log.Println("--money movement authorize is called")
 	if req.GetCurrency() != "USD" {
 		return nil, status.Error(codes.InvalidArgument, "only accepts USD")
 	}
 
 	// Begin the transaction
+	log.Println("---beginning transaction")
 	tx, err := impl.db.Begin()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
+	log.Println("---transaction started")
 	merchantWallet, err := fetchWallet(tx, req.GetMerchantWalletUserId())
 	log.Printf("---merchant wallet: %v", merchantWallet)
 	if err != nil {
+		log.Printf("---error getting merchant wallet: %v", err.Error())
 		rollBackErr := tx.Rollback()
 		if rollBackErr != nil {
 			return nil, status.Error(codes.Internal, rollBackErr.Error())

@@ -45,7 +45,7 @@ func main() {
 	}()
 
 	mmClient = mmpb.NewMoneyMovementServiceClient(mmConn)
-
+	log.Printf("---money movement client created: %v", mmClient)
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/customer/payment/authorize", customerPaymentAuthorize)
 	http.HandleFunc("/customer/payment/capture", customerPaymentCapture)
@@ -145,6 +145,7 @@ func customerPaymentAuthorize(w http.ResponseWriter, r *http.Request) {
 	})
 	log.Printf("---authorize_payload: %v", ar)
 	if err != nil {
+		log.Printf("---authorize payload error: %s", err.Error())
 		_, writeErr := w.Write([]byte(err.Error()))
 		if writeErr != nil {
 			log.Println(writeErr)
