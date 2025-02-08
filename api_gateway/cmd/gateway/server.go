@@ -178,7 +178,7 @@ func customerPaymentAuthorize(w http.ResponseWriter, r *http.Request) {
 
 func customerPaymentCapture(w http.ResponseWriter, r *http.Request) {
 	authHeader := r.Header.Get("Authorization")
-	if authHeader != "" {
+	if authHeader == "" {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
