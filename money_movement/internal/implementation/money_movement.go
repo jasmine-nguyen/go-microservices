@@ -204,7 +204,7 @@ func createTransaction(tx *sql.Tx, pid string, srcAccount account, dstAccount ac
 		return status.Error(codes.Internal, err.Error())
 	}
 
-	_, err = stmt.Exec(pid, srcWallet.userID, dstWallet.userID, srcWallet.ID, dstWallet.ID, srcAccount.walletID, dstAccount.walletID, srcAccount.ID, dstAccount.ID, srcAccount.accountType, dstAccount.accountType, finalDstWallet.ID, amount)
+	_, err = stmt.Exec(pid, srcWallet.userID, dstWallet.userID, srcWallet.ID, dstWallet.ID, srcAccount.walletID, dstAccount.walletID, srcAccount.accountType, dstAccount.accountType, finalDstWallet.ID, amount)
 	if err != nil {
 		return status.Error(codes.Internal, err.Error())
 	}
