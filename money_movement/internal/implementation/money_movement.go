@@ -25,6 +25,7 @@ type Implementation struct {
 }
 
 func NewMoneyMovementImplementation(db *sql.DB) *Implementation {
+	log.Printf("--money movement DB: %v", db)
 	return &Implementation{
 		db: db,
 	}
@@ -115,7 +116,7 @@ func (impl *Implementation) Authorize(ctx context.Context, req *pb.AuthorizeRequ
 
 func fetchWallet(tx *sql.Tx, userID string) (wallet, error) {
 	var w wallet
-	stmt, err := tx.Prepare("SELECT id, user_id, wallet_type FROM Wallet WHERE user_id=?")
+	stmt, err := tx.Prepare("SELECT id, user_id, wallet_type FROM wallet WHERE user_id=?")
 	if err != nil {
 		return w, status.Error(codes.Internal, err.Error())
 	}
@@ -151,7 +152,7 @@ func fetchWalletByWalletID(tx *sql.Tx, walletID int32) (wallet, error) {
 
 func fetchAccount(tx *sql.Tx, walletID int32, accountType string) (account, error) {
 	var a account
-	stmt, err := tx.Prepare("SELECT id, cents, account_type, wallet_id FROM Account WHERE wallet_id=? AND account_type=?")
+	stmt, err := tx.Prepare("SELECT id, cents, account_type, wallet_id FROM account WHERE wallet_id=? AND account_type=?")
 	if err != nil {
 		return a, status.Error(codes.Internal, err.Error())
 	}
