@@ -25,7 +25,9 @@ type Implementation struct {
 }
 
 func NewMoneyMovementImplementation(db *sql.DB) *Implementation {
-	return &Implementation{}
+	return &Implementation{
+		db: db,
+	}
 }
 
 func (impl *Implementation) Authorize(ctx context.Context, req *pb.AuthorizeRequest) (*pb.AuthorizeResponse, error) {
